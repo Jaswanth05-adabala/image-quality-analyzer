@@ -16,22 +16,26 @@
     </form>
 
     {% if image_url %}
-        <img src="/{{ image_url }}" class="preview">
+        <img src="{{ image_url }}" class="preview">
     {% endif %}
 
     {% if result %}
-        <p>Blur: {{ result.blur }}%</p>
-        <div class="bar orange" style="width: {{ result.blur }}%;"></div>
+        <p>Blur: {{ result['blur'] }}%</p>
+        <div class="bar orange" style="width: {{ result['blur'] }}%;"></div>
 
-        <p>Heavy Blur: {{ result.heavy_blur }}%</p>
-        <div class="bar red" style="width: {{ result.heavy_blur }}%;"></div>
+        <p>Heavy Blur: {{ result['heavy_blur'] }}%</p>
+        <div class="bar red" style="width: {{ result['heavy_blur'] }}%;"></div>
 
-        <p>Clear: {{ result.clear }}%</p>
-        <div class="bar green" style="width: {{ result.clear }}%;"></div>
+        <p>Clear: {{ result['clear'] }}%</p>
+        <div class="bar green" style="width: {{ result['clear'] }}%;"></div>
 
-        <h3>Final Verdict: {{ result.verdict }}</h3>
-        <p><b>Reason:</b> {{ result.reason }}</p>
-        <p><b>Suggestions:</b> {{ result.suggestion }}</p>
+        <h3>Final Verdict: {{ result['verdict'] }}</h3>
+        <p><b>Reason:</b> {{ result['reason'] }}</p>
+        <p><b>Suggestions:</b> {{ result['suggestion'] }}</p>
+    {% endif %}
+
+    {% if error %}
+        <p style="color:red">{{ error }}</p>
     {% endif %}
 </div>
 
