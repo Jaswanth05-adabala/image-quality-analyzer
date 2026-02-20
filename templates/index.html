@@ -11,6 +11,7 @@
 
     <form method="POST" enctype="multipart/form-data">
         <input type="file" name="image" required>
+        <br><br>
         <button type="submit">Analyze Image</button>
     </form>
 
@@ -20,13 +21,13 @@
 
     {% if result %}
         <p>Blur: {{ result.blur }}%</p>
-        <div class="bar orange" style="width: {{ result.blur }}%"></div>
+        <div class="bar orange" style="width: {{ result.blur }}%;"></div>
 
         <p>Heavy Blur: {{ result.heavy_blur }}%</p>
-        <div class="bar red" style="width: {{ result.heavy_blur }}%"></div>
+        <div class="bar red" style="width: {{ result.heavy_blur }}%;"></div>
 
         <p>Clear: {{ result.clear }}%</p>
-        <div class="bar green" style="width: {{ result.clear }}%"></div>
+        <div class="bar green" style="width: {{ result.clear }}%;"></div>
 
         <h3>Final Verdict: {{ result.verdict }}</h3>
         <p><b>Reason:</b> {{ result.reason }}</p>

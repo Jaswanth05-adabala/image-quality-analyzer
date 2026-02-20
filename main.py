@@ -4,44 +4,21 @@ import numpy as np
 import os
 
 app = Flask(__name__)
+UPLOAD_FOLDER = "static"
+app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 
-def analyze_image(image_path):
-    img = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
 
-    # Laplacian variance (blur detection)
+def analyze_image(path):
+    img = cv2.imread(path, cv2.IMREAD_GRAYSCALE)
     variance = cv2.Laplacian(img, cv2.CV_64F).var()
 
-    # Normalize to percentage ranges
     if variance < 100:
-        blur = 10
-        heavy_blur = 80
-        clear = 10
-        verdict = "HEAVY BLUR"
-        reason = "Image is extremely blurred"
-        suggestion = "Retake image with better focus and lighting"
+        return 10, 80, 10, "HEAVY BLUR", "Image is extremely blurred", "Retake image with proper focus and lighting"
     elif variance < 300:
-        blur = 60
-        heavy_blur = 20
-        clear = 20
-        verdict = "BLUR"
-        reason = "Image has noticeable blur"
-        suggestion = "Use tripod or increase shutter speed"
+        return 60, 20, 20, "BLUR", "Image has noticeable blur", "Use tripod or increase shutter speed"
     else:
-        blur = 10
-        heavy_blur = 5
-        clear = 85
-        verdict = "CLEAR"
-        reason = "Image is sharp and clear"
-        suggestion = "No improvement needed"
+        return 10, 5, 85, "CLEAR", "Image is sharp and clear", "No improvement needed"
 
-    return {
-        "blur": blur,
-        "heavy_blur": heavy_blur,
-        "clear": clear,
-        "verdict": verdict,
-        "reason": reason,
-        "suggestion": suggestion
-    }
 
 @app.route("/", methods=["GET", "POST"])
 def index():
@@ -49,15 +26,32 @@ def index():
     image_url = None
 
     if request.method == "POST":
-        file = request.files["image"]
-        if file:
-            upload_path = os.path.join("static", file.filename)
-            file.save(upload_path)
+        if "image" not in request.files:
+            return render_template("index.html", error="No file uploaded")
 
-            result = analyze_image(upload_path)
-            image_url = upload_path
+        file = request.files["image"]
+
+        if file.filename == "":
+            return render_template("index.html", error="No file selected")
+
+        path = os.path.join(app.config["UPLOAD_FOLDER"], file.filename)
+        file.save(path)
+
+        blur, heavy, clear, verdict, reason, suggestion = analyze_image(path)
+
+        result = {
+            "blur": blur,
+            "heavy_blur": heavy,
+            "clear": clear,
+            "verdict": verdict,
+            "reason": reason,
+            "suggestion": suggestion
+        }
+
+        image_url = path
 
     return render_template("index.html", result=result, image_url=image_url)
+
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
