@@ -5,56 +5,59 @@ import os
 
 app = Flask(__name__)
 
+def analyze_image(image_path):
+    img = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
+
+    # Laplacian variance (blur detection)
+    variance = cv2.Laplacian(img, cv2.CV_64F).var()
+
+    # Normalize to percentage ranges
+    if variance < 100:
+        blur = 10
+        heavy_blur = 80
+        clear = 10
+        verdict = "HEAVY BLUR"
+        reason = "Image is extremely blurred"
+        suggestion = "Retake image with better focus and lighting"
+    elif variance < 300:
+        blur = 60
+        heavy_blur = 20
+        clear = 20
+        verdict = "BLUR"
+        reason = "Image has noticeable blur"
+        suggestion = "Use tripod or increase shutter speed"
+    else:
+        blur = 10
+        heavy_blur = 5
+        clear = 85
+        verdict = "CLEAR"
+        reason = "Image is sharp and clear"
+        suggestion = "No improvement needed"
+
+    return {
+        "blur": blur,
+        "heavy_blur": heavy_blur,
+        "clear": clear,
+        "verdict": verdict,
+        "reason": reason,
+        "suggestion": suggestion
+    }
+
 @app.route("/", methods=["GET", "POST"])
 def index():
     result = None
+    image_url = None
 
     if request.method == "POST":
         file = request.files["image"]
-
         if file:
-            # Read image
-            image_bytes = np.frombuffer(file.read(), np.uint8)
-            image = cv2.imdecode(image_bytes, cv2.IMREAD_COLOR)
+            upload_path = os.path.join("static", file.filename)
+            file.save(upload_path)
 
-            gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+            result = analyze_image(upload_path)
+            image_url = upload_path
 
-            # Blur detection using Laplacian
-            blur_score = cv2.Laplacian(gray, cv2.CV_64F).var()
-
-            # Logic
-            if blur_score < 50:
-                blur = 20
-                heavy_blur = 75
-                clear = 5
-                verdict = "HEAVY BLUR"
-                reason = "Image is extremely blurred"
-                suggestion = "Use tripod, increase focus, avoid motion"
-            elif blur_score < 150:
-                blur = 50
-                heavy_blur = 30
-                clear = 20
-                verdict = "BLUR"
-                reason = "Image is slightly blurred"
-                suggestion = "Improve lighting and camera stability"
-            else:
-                blur = 10
-                heavy_blur = 5
-                clear = 85
-                verdict = "CLEAR"
-                reason = "Image is sharp and clear"
-                suggestion = "No improvement needed"
-
-            result = {
-                "blur": blur,
-                "heavy_blur": heavy_blur,
-                "clear": clear,
-                "verdict": verdict,
-                "reason": reason,
-                "suggestion": suggestion
-            }
-
-    return render_template("index.html", result=result)
+    return render_template("index.html", result=result, image_url=image_url)
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))

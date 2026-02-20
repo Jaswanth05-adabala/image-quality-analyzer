@@ -2,34 +2,7 @@
 <html>
 <head>
     <title>Image Quality Analysis</title>
-    <style>
-        body {
-            background: #3b82f6;
-            font-family: Arial;
-            text-align: center;
-            color: white;
-        }
-        .card {
-            background: #2563eb;
-            width: 420px;
-            margin: 40px auto;
-            padding: 20px;
-            border-radius: 12px;
-        }
-        img {
-            width: 100%;
-            border-radius: 10px;
-            margin-top: 10px;
-        }
-        .bar {
-            height: 10px;
-            border-radius: 5px;
-            margin: 6px 0;
-        }
-        .orange { background: orange; }
-        .red { background: red; }
-        .green { background: lime; }
-    </style>
+    <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
 
@@ -37,13 +10,15 @@
     <h2>Image Quality Analysis</h2>
 
     <form method="POST" enctype="multipart/form-data">
-        <input type="file" name="image" required><br><br>
+        <input type="file" name="image" required>
         <button type="submit">Analyze Image</button>
     </form>
 
-    {% if result %}
-        <hr>
+    {% if image_url %}
+        <img src="/{{ image_url }}" class="preview">
+    {% endif %}
 
+    {% if result %}
         <p>Blur: {{ result.blur }}%</p>
         <div class="bar orange" style="width: {{ result.blur }}%"></div>
 
