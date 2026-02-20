@@ -4,109 +4,60 @@
     <title>Image Quality Analysis</title>
     <style>
         body {
-            margin: 0;
-            font-family: Arial, sans-serif;
-            background: linear-gradient(135deg, #6a11cb, #2575fc);
-            color: white;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-        }
-
-        .card {
-            background: rgba(255, 255, 255, 0.15);
-            padding: 25px;
-            border-radius: 15px;
-            width: 420px;
+            background: #3b82f6;
+            font-family: Arial;
             text-align: center;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            color: white;
         }
-
-        h2 {
-            margin-bottom: 15px;
+        .card {
+            background: #2563eb;
+            width: 420px;
+            margin: 40px auto;
+            padding: 20px;
+            border-radius: 12px;
         }
-
-        input[type="file"] {
-            margin: 10px 0;
-        }
-
-        button {
-            background: #ffc107;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: bold;
-        }
-
         img {
-            max-width: 100%;
+            width: 100%;
             border-radius: 10px;
-            margin: 15px 0;
+            margin-top: 10px;
         }
-
         .bar {
-            background: rgba(255,255,255,0.3);
-            border-radius: 10px;
-            overflow: hidden;
-            height: 12px;
-            margin-bottom: 10px;
+            height: 10px;
+            border-radius: 5px;
+            margin: 6px 0;
         }
-
-        .bar span {
-            display: block;
-            height: 100%;
-        }
-
-        .red { background: #ff4d4d; }
-        .green { background: #00e676; }
-        .orange { background: #ff9800; }
-
-        .verdict {
-            font-size: 20px;
-            font-weight: bold;
-            margin: 10px 0;
-        }
-
-        ul {
-            text-align: left;
-        }
+        .orange { background: orange; }
+        .red { background: red; }
+        .green { background: lime; }
     </style>
 </head>
-
 <body>
+
 <div class="card">
     <h2>Image Quality Analysis</h2>
 
     <form method="POST" enctype="multipart/form-data">
-        <input type="file" name="image" required><br>
+        <input type="file" name="image" required><br><br>
         <button type="submit">Analyze Image</button>
     </form>
 
     {% if result %}
-        <img src="{{ result.image }}">
+        <hr>
 
-        <div>Blur: {{ result.blur }}%</div>
-        <div class="bar"><span class="orange" style="width: {{ result.blur }}%;"></span></div>
+        <p>Blur: {{ result.blur }}%</p>
+        <div class="bar orange" style="width: {{ result.blur }}%"></div>
 
-        <div>Heavy Blur: {{ result.heavy_blur }}%</div>
-        <div class="bar"><span class="red" style="width: {{ result.heavy_blur }}%;"></span></div>
+        <p>Heavy Blur: {{ result.heavy_blur }}%</p>
+        <div class="bar red" style="width: {{ result.heavy_blur }}%"></div>
 
-        <div>Clear: {{ result.clear_pct }}%</div>
-        <div class="bar"><span class="green" style="width: {{ result.clear_pct }}%;"></span></div>
+        <p>Clear: {{ result.clear }}%</p>
+        <div class="bar green" style="width: {{ result.clear }}%"></div>
 
-        <div class="verdict">Final Verdict: {{ result.final }}</div>
-
+        <h3>Final Verdict: {{ result.verdict }}</h3>
         <p><b>Reason:</b> {{ result.reason }}</p>
-
-        <p><b>Suggestions:</b></p>
-        <ul>
-            {% for s in result.suggestions %}
-                <li>{{ s }}</li>
-            {% endfor %}
-        </ul>
+        <p><b>Suggestions:</b> {{ result.suggestion }}</p>
     {% endif %}
 </div>
+
 </body>
 </html>

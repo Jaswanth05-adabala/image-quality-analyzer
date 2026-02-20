@@ -1,89 +1,60 @@
 from flask import Flask, render_template, request
 import cv2
 import numpy as np
-from PIL import Image
-import io
-import base64
 import os
 
 app = Flask(__name__)
 
-def analyze_blur(image):
-    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-    laplacian_var = cv2.Laplacian(gray, cv2.CV_64F).var()
-
-    # Heuristic thresholds
-    if laplacian_var < 50:
-        verdict = "Heavy Blur"
-        reason = "Image is extremely blurred due to strong motion or defocus."
-        suggestions = [
-            "Use a tripod or stable surface",
-            "Improve lighting",
-            "Avoid camera shake",
-            "Use higher shutter speed"
-        ]
-        blur = 20
-        heavy_blur = 75
-        clear = 5
-
-    elif laplacian_var < 120:
-        verdict = "Blur"
-        reason = "Image has noticeable blur, likely due to mild motion or focus issue."
-        suggestions = [
-            "Hold camera steady",
-            "Tap to focus before capture",
-            "Increase light exposure"
-        ]
-        blur = 55
-        heavy_blur = 20
-        clear = 25
-
-    else:
-        verdict = "Clear"
-        reason = "Image is sharp and clear with good focus."
-        suggestions = [
-            "No improvement needed",
-            "Image is suitable for use"
-        ]
-        blur = 10
-        heavy_blur = 5
-        clear = 85
-
-    return blur, heavy_blur, clear, verdict, reason, suggestions
-
-
 @app.route("/", methods=["GET", "POST"])
 def index():
-    image_data = None
-    blur = heavy_blur = clear = None
-    verdict = reason = None
-    suggestions = []
+    result = None
 
     if request.method == "POST":
         file = request.files["image"]
+
         if file:
-            img_bytes = file.read()
-            image = Image.open(io.BytesIO(img_bytes)).convert("RGB")
-            open_cv_image = np.array(image)
-            open_cv_image = open_cv_image[:, :, ::-1].copy()
+            # Read image
+            image_bytes = np.frombuffer(file.read(), np.uint8)
+            image = cv2.imdecode(image_bytes, cv2.IMREAD_COLOR)
 
-            blur, heavy_blur, clear, verdict, reason, suggestions = analyze_blur(open_cv_image)
+            gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
-            buffered = io.BytesIO()
-            image.save(buffered, format="PNG")
-            image_data = base64.b64encode(buffered.getvalue()).decode()
+            # Blur detection using Laplacian
+            blur_score = cv2.Laplacian(gray, cv2.CV_64F).var()
 
-    return render_template(
-        "index.html",
-        image_data=image_data,
-        blur=blur,
-        heavy_blur=heavy_blur,
-        clear=clear,
-        verdict=verdict,
-        reason=reason,
-        suggestions=suggestions
-    )
+            # Logic
+            if blur_score < 50:
+                blur = 20
+                heavy_blur = 75
+                clear = 5
+                verdict = "HEAVY BLUR"
+                reason = "Image is extremely blurred"
+                suggestion = "Use tripod, increase focus, avoid motion"
+            elif blur_score < 150:
+                blur = 50
+                heavy_blur = 30
+                clear = 20
+                verdict = "BLUR"
+                reason = "Image is slightly blurred"
+                suggestion = "Improve lighting and camera stability"
+            else:
+                blur = 10
+                heavy_blur = 5
+                clear = 85
+                verdict = "CLEAR"
+                reason = "Image is sharp and clear"
+                suggestion = "No improvement needed"
 
+            result = {
+                "blur": blur,
+                "heavy_blur": heavy_blur,
+                "clear": clear,
+                "verdict": verdict,
+                "reason": reason,
+                "suggestion": suggestion
+            }
+
+    return render_template("index.html", result=result)
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
